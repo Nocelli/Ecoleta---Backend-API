@@ -1,6 +1,6 @@
 #Local DB files
 ./src/database/database.sqlite
-.database.sqlite
+database.*
 todos.txt
 roles.json
 # Logs
