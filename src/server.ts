@@ -1,12 +1,13 @@
 import express from 'express'
+import routes from './routes'
+
+const PORT : Number = 3001
+
 
 const app = express()
+app.use(express.json())
+app.use(routes)
 
-app.get('/users', (request, response) => {
-    return response.status(200).json({'Msg' : 'Hello World!'})
-})
-
-
-app.listen(3001,() => {
-    console.log('Server running! (go!,catch it!)')
+app.listen(PORT,() => {
+    console.log('\x1b[32m','\n\n\n\t\t\tServer starting!\n',"\x1b[33m",'Port: ' + PORT)
 })
