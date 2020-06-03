@@ -15,6 +15,7 @@ class PointsController {
         } = request.body
 
         const transaction = await knex.transaction()
+
         const point = {
             image: 'image-fake',
             name,
@@ -26,7 +27,6 @@ class PointsController {
             uf
         }
         const insertedPointId = (await transaction('points').insert(point))[0]
-
         const pointItems = items.map((item_id: number) => {
             return {
                 item_id,
@@ -40,6 +40,16 @@ class PointsController {
             id: insertedPointId,
             ...point
          })
+    }
+
+    async show(request: Request, response: Response){
+        const { id } = request.params
+        const point = await knex('points').select('*').where({id}).first()
+
+        if(!point)
+            return response.status(404).json({message: 'Point not found'})
+
+        return response.status(200).json(point)
     }
 }
 
