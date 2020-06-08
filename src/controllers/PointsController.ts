@@ -9,15 +9,22 @@ class PointsController {
             .map(item => Number(item.trim()))
 
         const points = await knex('points')
-            .join('point_items', {'point_items.point_id': 'points.id'})
+            .join('point_items', { 'point_items.point_id': 'points.id' })
             .whereIn('point_items.item_id', parsedItems)
             .where('city', String(city))
             .where('uf', String(uf))
             .distinct()
-            .select('points.*') 
-            
+            .select('points.*')
 
-        return response.status(200).json(points)
+        const serializedPoints = points.map(point => {
+            return {
+                ...points,
+                image_url: `http://${process.env.HOST}:${process.env.PORT}/uploads/${point.image}`
+            }
+        })
+
+
+        return response.status(200).json(serializedPoints)
     }
 
     async create(request: Request, response: Response) {
@@ -36,7 +43,7 @@ class PointsController {
             const transaction = await knex.transaction()
 
             const point = {
-                image: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=167&q=20',
+                image: request.file.filename,
                 name,
                 email,
                 whatsapp,
@@ -46,12 +53,15 @@ class PointsController {
                 uf
             }
             const insertedPointId = await transaction('points').insert(point)
-            const pointItems = items.map((item_id: number) => {
-                return {
-                    item_id,
-                    point_id: insertedPointId[0]
-                }
-            })
+            const pointItems = items
+                .split(',')
+                .map((item: string) => Number(item.trim()))
+                .map((item_id: number) => {
+                    return {
+                        item_id,
+                        point_id: insertedPointId[0]
+                    }
+                })
 
             await transaction('point_items').insert(pointItems)
             await transaction.commit()
@@ -76,7 +86,12 @@ class PointsController {
             .join('point_items', { 'point_items.item_id': 'items.id' })
             .where('point_items.point_id', id)
 
-        return response.status(200).json({ point, items })
+        const serializedPoint = {
+            ...point,
+            image_url: `http://${process.env.HOST}:${process.env.PORT}/uploads/${point.image}`
+        }
+
+        return response.status(200).json({ point: serializedPoint, items })
     }
 }
 
