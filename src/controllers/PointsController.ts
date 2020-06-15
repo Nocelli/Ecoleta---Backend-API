@@ -13,12 +13,12 @@ class PointsController {
             .whereIn('point_items.item_id', parsedItems)
             .where('city', String(city))
             .where('uf', String(uf))
-            .distinct()
             .select('points.*')
+            .groupBy('points.id')
 
         const serializedPoints = points.map(point => {
             return {
-                ...points,
+                ...point,
                 image_url: `http://${process.env.HOST}:${process.env.PORT}/uploads/${point.image}`
             }
         })
